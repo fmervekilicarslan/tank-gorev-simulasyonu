@@ -1,7 +1,7 @@
 # Tank Görev Simülatörü
 
 ## Sistem Mimarisi (Use Case Diagram)
-![Tank Simülasyonu Use Case Diyagramı](use-case-diagram.png)
+![Tank Simülasyonu Use Case Diyagramı](images/use-case-diagram.png)
 
 ## Sistem Mimarisi (UML Sınıf Diyagramı - V2)
 

@@ -8,3 +8,6 @@
 Projenin teknik altyapısı; sürdürülebilirlik, modülerlik ve savunma sanayii standartlarına uygun olarak tasarlanmıştır. Sistem; loglama mekanizması, durum yönetimi ve merkezi görev yöneticisi ile desteklenmektedir.
 
 ![Sistem Mimarisi V2](images/Tank_Simulation_Class_Diagram_V2.png)
+
+## Kullanılan Teknolojiler ve Altyapı
+* **Loglama:** Sürdürülebilirlik ve modern standartlar gereği `SLF4J` (Arayüz) ve `Logback` (Motor) kullanılacaktır.

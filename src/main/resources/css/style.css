@@ -1,0 +1,60 @@
+/* 1. Tüm Uygulama Arka Planı (Beyaz patlamayı kökten çözer) */
+.root {
+    -fx-background-color: #171c17;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* 2. Sol Panel Ana Gövde */
+.left-panel {
+    -fx-background-color: #171c17;
+}
+
+/* 3. Kart (Kutu) Tasarımları */
+.section-box {
+    -fx-background-color: #212921;
+    -fx-border-color: #384d38;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 12 15 12 15;
+}
+
+/* 4. Buton Stilleri ve Efektleri */
+.button-military {
+    -fx-background-color: #384d38;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 4;
+    -fx-border-color: #4caf50;
+    -fx-border-radius: 4;
+    -fx-padding: 8;
+    -fx-cursor: hand;
+}
+
+.button-military:hover {
+    -fx-background-color: #4caf50;
+    -fx-text-fill: #000000;
+}
+
+.button-military:pressed {
+    -fx-background-color: #273827;
+    -fx-border-color: #ffffff;
+}
+
+/* Taktik Harita */
+.map-pane {
+    -fx-background-color: #111a11; /* Sadece düz, koyu askeri yeşil kalsın */
+    -fx-border-color: #4caf50;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+}
+
+/* 6. En Alttaki Durum Çubuğu */
+.status-bar {
+    -fx-background-color: #171c17;
+    -fx-border-color: #384d38;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 5 15;
+}

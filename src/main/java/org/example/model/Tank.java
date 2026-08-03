@@ -1,57 +1,59 @@
 package org.example.model;
 
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import lombok.Getter;
-import lombok.Setter;
+import org.example.exception.OutOfFuelException; // Kendi yazdığımız hata sınıfını import ettik
 
-/**
- * Tank sınıfı, simülasyondaki ana hareketli birimi temsil eder.
- * JavaFX arayüzü ile çift yönlü veri bağlaması (data binding) yapabilmek için
- * yakıt ve konum gibi anlık değişen değerler JavaFX Property'leri olarak tanımlanmıştır.
- */
 public class Tank {
+    private Coordinate konum;
+    private double yakitSeviyesi;
+    private double tuketimOrani;
+    private double kapasite;
+    private double katEdilenMesafe;
+    private String durum;
 
-    // --- LOMBOK İLE YÖNETİLEN STANDART ALANLAR ---
-    @Getter
-    @Setter
-    private TankState currentState; // Enum: Tankın anlık durumu
-
-    @Getter
-    @Setter
-    private double fuelConsumptionRate; // 100 pikselde tüketilen yakıt miktarı
-
-    // --- JAVAFX PROPERTY İLE YÖNETİLEN DİNAMİK ALANLAR ---
-    // Not: Gamze Hanım'ın uyarısı doğrultusunda, arayüzde anlık güncellenecek
-    // veriler için Lombok @Getter/@Setter yerine manuel Property metodları yazılmıştır.
-
-    private final DoubleProperty xCoordinate;
-    private final DoubleProperty yCoordinate;
-    private final DoubleProperty fuelLevel;
-
-    /**
-     * Tank nesnesi oluşturulurken başlangıç değerlerini atayan Constructor.
-     */
-    public Tank(double startX, double startY, double initialFuel) {
-        this.xCoordinate = new SimpleDoubleProperty(startX);
-        this.yCoordinate = new SimpleDoubleProperty(startY);
-        this.fuelLevel = new SimpleDoubleProperty(initialFuel);
-        this.currentState = TankState.IDLE; // Varsayılan durum: Bekliyor
-        this.fuelConsumptionRate = 5.0; // Varsayılan: 100px'de 5 birim yakıt (SRS REQ-UI-1.5'e göre)
+    public Tank(Coordinate konum, double yakitSeviyesi, double tuketimOrani, double kapasite) {
+        this.konum = konum;
+        this.yakitSeviyesi = yakitSeviyesi;
+        this.tuketimOrani = tuketimOrani;
+        this.kapasite = kapasite;
+        this.katEdilenMesafe = 0.0;
+        this.durum = "BEKLEMEDE";
     }
 
-    // --- JAVAFX PROPERTY METODLARI (X KOORDİNATI) ---
-    public double getXCoordinate() { return xCoordinate.get(); }
-    public void setXCoordinate(double value) { this.xCoordinate.set(value); }
-    public DoubleProperty xCoordinateProperty() { return xCoordinate; }
+    // throws OutOfFuelException: "Bu metot çalışırken yakıt bitme tehlikesi var, haberiniz olsun!" demek.
+    public void mesafeGit(double gidilenMesafe) throws OutOfFuelException {
+        double harcananYakit = (gidilenMesafe / 100.0) * tuketimOrani;
 
-    // --- JAVAFX PROPERTY METODLARI (Y KOORDİNATI) ---
-    public double getYCoordinate() { return yCoordinate.get(); }
-    public void setYCoordinate(double value) { this.yCoordinate.set(value); }
-    public DoubleProperty yCoordinateProperty() { return yCoordinate; }
+        // EĞER YAKIT YETMİYORSA:
+        if (this.yakitSeviyesi < harcananYakit) {
+            // Tank depodaki son damlaya kadar (gidebileceği yere kadar) gider
+            double gidilebilenMaksimumYol = (this.yakitSeviyesi / tuketimOrani) * 100.0;
+            this.katEdilenMesafe += gidilebilenMaksimumYol;
+            this.yakitSeviyesi = 0;
+            this.durum = "YAKIT TÜKENDİ";
 
-    // --- JAVAFX PROPERTY METODLARI (YAKIT SEVİYESİ) ---
-    public double getFuelLevel() { return fuelLevel.get(); }
-    public void setFuelLevel(double value) { this.fuelLevel.set(value); }
-    public DoubleProperty fuelLevelProperty() { return fuelLevel; }
+            // Ve kırmızı alarmı (Exception) çalarak işlemi durdurur!
+            throw new OutOfFuelException("Kritik Hata: Tankın yakıtı tükendi! Hedefe tam olarak ulaşılamadı.");
+        }
+
+        // YAKIT YETİYORSA NORMAL ÇALIŞMAYA DEVAM:
+        this.katEdilenMesafe += gidilenMesafe;
+        this.yakitSeviyesi -= harcananYakit;
+    }
+
+    public double getTahminiMenzil() {
+        if (tuketimOrani <= 0) return 0.0;
+        return (yakitSeviyesi / tuketimOrani) * 100.0;
+    }
+
+    public Coordinate getKonum() { return konum; }
+    public void setKonum(Coordinate konum) { this.konum = konum; }
+
+    public double getYakitSeviyesi() { return yakitSeviyesi; }
+    public void setYakitSeviyesi(double yakitSeviyesi) { this.yakitSeviyesi = yakitSeviyesi; }
+
+    public double getKatEdilenMesafe() { return katEdilenMesafe; }
+    public void setKatEdilenMesafe(double katEdilenMesafe) { this.katEdilenMesafe = katEdilenMesafe; }
+
+    public String getDurum() { return durum; }
+    public void setDurum(String durum) { this.durum = durum; }
 }

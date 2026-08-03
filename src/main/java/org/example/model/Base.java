@@ -1,14 +1,15 @@
 package org.example.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-/**
- * Simülasyondaki Askeri Üssü (Başlangıç ve Bitiş noktası) temsil eder.
- */
-@Data
-@AllArgsConstructor
+@Setter
+@Getter
+
 public class Base {
-    private double x;
-    private double y;
+    private Coordinate location;
+
+    public Base(Coordinate location) {
+        this.location = location;
+    }
 }

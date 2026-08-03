@@ -1,85 +1,80 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Pane?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.geometry.Insets?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
-            fx:controller="org.example.controller.SimulationController"
-            prefHeight="700.0" prefWidth="1100.0" stylesheets="@../css/style.css">
+<BorderPane prefHeight="700.0" prefWidth="1100.0" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.controller.SimulationController">
 
     <!-- SOL PANEL (Boşluk dengelendi, fontlar hafifçe büyütüldü) -->
     <left>
-        <VBox styleClass="left-panel" prefWidth="320.0" spacing="25" style="-fx-padding: 20 15 20 15;">
+        <VBox prefWidth="320.0" spacing="25" style="-fx-padding: 20 15 20 15;" styleClass="left-panel">
 
             <!-- KUTU 1: MOD SEÇİMİ -->
-            <VBox styleClass="section-box" spacing="12">
-                <Label text="1. NOKTA EKLEME MODLARI" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #aed581;"/>
-                <Button fx:id="btnBaseMode" text="[ ] Üs Konumu Seç" styleClass="button-military" maxWidth="Infinity" alignment="BASELINE_LEFT" prefHeight="38"/>
-                <Button fx:id="btnObjMode" text="[ ] Hedef Noktası Ekle" styleClass="button-military" maxWidth="Infinity" alignment="BASELINE_LEFT" prefHeight="38"/>
+            <VBox spacing="12" styleClass="section-box">
+                <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #aed581;" text="1. NOKTA EKLEME MODLARI" />
+                <Button fx:id="btnBaseMode" alignment="BASELINE_LEFT" maxWidth="Infinity" prefHeight="38" styleClass="button-military" text="Üs Konumu Seç" />
+                <Button fx:id="btnObjMode" alignment="BASELINE_LEFT" maxWidth="Infinity" prefHeight="38" styleClass="button-military" text="Hedef Noktası Ekle" />
             </VBox>
 
             <!-- KUTU 2: PARAMETRELER -->
-            <VBox styleClass="section-box" spacing="15">
-                <Label text="2. TANK PARAMETRELERİ" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #aed581;"/>
+            <VBox spacing="15" styleClass="section-box">
+                <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #aed581;" text="2. TANK PARAMETRELERİ" />
                 <HBox alignment="CENTER_LEFT" spacing="15">
-                    <Label text="Yakıt Kapasitesi (L):" style="-fx-text-fill: white; -fx-font-size: 13px;" prefWidth="140"/>
-                    <TextField fx:id="txtFuelCapacity" text="500.0" style="-fx-background-color: #111; -fx-text-fill: white; -fx-border-color: #555; -fx-border-radius: 3;" HBox.hgrow="ALWAYS" prefHeight="30"/>
+                    <Label prefWidth="140" style="-fx-text-fill: white; -fx-font-size: 13px;" text="Yakıt Kapasitesi (L):" />
+                    <TextField fx:id="txtFuelCapacity" prefHeight="30" style="-fx-background-color: #111; -fx-text-fill: white; -fx-border-color: #555; -fx-border-radius: 3;" text="500.0" HBox.hgrow="ALWAYS" />
                 </HBox>
                 <HBox alignment="CENTER_LEFT" spacing="15">
-                    <Label text="Tüketim (L/100px):" style="-fx-text-fill: white; -fx-font-size: 13px;" prefWidth="140"/>
-                    <TextField fx:id="txtFuelRate" text="1.5" style="-fx-background-color: #111; -fx-text-fill: white; -fx-border-color: #555; -fx-border-radius: 3;" HBox.hgrow="ALWAYS" prefHeight="30"/>
+                    <Label prefWidth="140" style="-fx-text-fill: white; -fx-font-size: 13px;" text="Tüketim (L/100px):" />
+                    <TextField fx:id="txtFuelRate" prefHeight="30" style="-fx-background-color: #111; -fx-text-fill: white; -fx-border-color: #555; -fx-border-radius: 3;" text="1.5" HBox.hgrow="ALWAYS" />
                 </HBox>
             </VBox>
 
             <!-- KUTU 3: TELEMETRİ -->
-            <VBox styleClass="section-box" spacing="12">
-                <Label text="3. TELEMETRİ / GÖSTERGELER (CANLI)" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #aed581;"/>
-                <Label fx:id="lblFuel" text="Kalan Yakıt: [ 500.0 / 500.0 L ]" style="-fx-text-fill: #ffffff; -fx-font-family: 'Consolas', monospace; -fx-font-size: 13px;"/>
-                <Label fx:id="lblDistance" text="Kat Edilen Yol: [ 0.0 px ]" style="-fx-text-fill: #ffffff; -fx-font-family: 'Consolas', monospace; -fx-font-size: 13px;"/>
-                <Label fx:id="lblStatus" text="Operasyon Durumu: [ BEKLEMEDE ]" style="-fx-text-fill: #ffffff; -fx-font-family: 'Consolas', monospace; -fx-font-size: 13px;"/>
+            <VBox spacing="12" styleClass="section-box">
+                <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #aed581;" text="3. TELEMETRİ / GÖSTERGELER (CANLI)" />
+                <Label fx:id="lblFuel" style="-fx-text-fill: #ffffff; -fx-font-family: 'Consolas', monospace; -fx-font-size: 13px;" text="Kalan Yakıt: [ 500.0 / 500.0 L ]" />
+                <Label fx:id="lblDistance" style="-fx-text-fill: #ffffff; -fx-font-family: 'Consolas', monospace; -fx-font-size: 13px;" text="Kat Edilen Yol: [ 0.0 px ]" />
+                <Label fx:id="lblStatus" style="-fx-text-fill: #ffffff; -fx-font-family: 'Consolas', monospace; -fx-font-size: 13px;" text="Operasyon Durumu: [ BEKLEMEDE ]" />
             </VBox>
 
-            <!-- KUTU 4: AKSİYONLAR (Vgrow komutu kaldırıldı, kendi spacing'i ile aşağıya oturdu) -->
-            <VBox styleClass="section-box" style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0;" spacing="12">
-                <Label text="4. AKSİYONLAR" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #aed581;"/>
-                <Button fx:id="btnStart" text="[ GÖREVİ HESAPLA &amp; BAŞLAT ]" styleClass="button-military" maxWidth="Infinity" style="-fx-background-color: #2e7d32; -fx-border-color: #4caf50;" prefHeight="42"/>
+            <!-- KUTU 4: AKSİYONLAR -->
+            <VBox spacing="12" style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0;" styleClass="section-box">
+                <Label style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #aed581;" text="4. AKSİYONLAR" />
+                <Button fx:id="btnStart" maxWidth="Infinity" prefHeight="42" style="-fx-background-color: #2e7d32; -fx-border-color: #4caf50;" styleClass="button-military" text="[ GÖREVİ HESAPLA &amp; BAŞLAT ]" />
 
                 <HBox spacing="10">
-                    <Button fx:id="btnPause" text="Durdur" styleClass="button-military" maxWidth="Infinity" HBox.hgrow="ALWAYS" style="-fx-background-color: #b8860b;" prefHeight="35"/>
-                    <Button fx:id="btnResume" text="Devam Et" styleClass="button-military" maxWidth="Infinity" HBox.hgrow="ALWAYS" style="-fx-background-color: #2e8b57;" prefHeight="35"/>
+                    <Button fx:id="btnPause" maxWidth="Infinity" prefHeight="35" style="-fx-background-color: #b8860b;" styleClass="button-military" text="Durdur" HBox.hgrow="ALWAYS" />
+                    <Button fx:id="btnResume" maxWidth="Infinity" prefHeight="35" style="-fx-background-color: #2e8b57;" styleClass="button-military" text="Devam Et" HBox.hgrow="ALWAYS" />
                 </HBox>
 
-                <Button fx:id="btnClear" text="[ HARİTAYI TEMİZLE ]" styleClass="button-military" maxWidth="Infinity" style="-fx-background-color: #8b0000; -fx-border-color: #ff4500;" prefHeight="42"/>
+                <Button fx:id="btnClear" maxWidth="Infinity" prefHeight="42" style="-fx-background-color: #8b0000; -fx-border-color: #ff4500;" styleClass="button-military" text="[ HARİTAYI TEMİZLE ]" />
             </VBox>
+            <AnchorPane prefHeight="200.0" prefWidth="200.0" />
 
         </VBox>
     </left>
 
-    <!-- SAĞ PANEL (HARİTA) -->
+    <!-- SAĞ PANEL (TAM EKRAN DİNAMİK HARİTA) -->
     <center>
-        <Pane fx:id="mapPane" styleClass="map-pane">
+        <Pane fx:id="mapPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="map-pane">
             <BorderPane.margin>
-                <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
+                <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
             </BorderPane.margin>
         </Pane>
     </center>
 
     <!-- ALT PANEL (DURUM ÇUBUĞU VE CANLI RADAR) -->
     <bottom>
-        <HBox styleClass="status-bar" alignment="CENTER_LEFT">
-            <Label fx:id="lblStatusBar" text="Durum Çubuğu: Sistem Hazır. Lütfen mod seçiniz..." style="-fx-text-fill: #ffffff; -fx-font-size: 12px;"/>
+        <HBox alignment="CENTER_LEFT" styleClass="status-bar">
+            <Label fx:id="lblStatusBar" style="-fx-text-fill: #ffffff; -fx-font-size: 12px;" text="Durum Çubuğu: Sistem Hazır. Lütfen mod seçiniz..." />
 
             <!-- Aradaki boşluğu iten görünmez yay (Region) -->
-            <javafx.scene.layout.Region HBox.hgrow="ALWAYS" />
+            <Region HBox.hgrow="ALWAYS" />
 
             <!-- Canlı Koordinat (Radar) Etiketi -->
-            <Label fx:id="lblCoordinates" text="RADAR: [ BEKLEMEDE ]" style="-fx-text-fill: #aed581; -fx-font-family: 'Consolas', monospace; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+            <Label fx:id="lblCoordinates" style="-fx-text-fill: #aed581; -fx-font-family: 'Consolas', monospace; -fx-font-size: 12px; -fx-font-weight: bold;" text="RADAR: [ BEKLEMEDE ]" />
         </HBox>
     </bottom>
 

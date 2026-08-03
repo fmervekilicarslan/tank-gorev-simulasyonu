@@ -1,10 +1,10 @@
 package org.example.model;
 
     public enum TankState {
-        IDLE,           // Bekliyor (Henüz görev başlamadı)
-        MOVING,         // Hareket halinde
-        MISSION_SUCCESS,// Görevi başarıyla tamamladı
-        OUT_OF_FUEL,    // Yakıtı bitti (Yolda kaldı)
-        FAILED          // Diğer başarısızlık durumları
+        BEKLEMEDE,    // Bekliyor (Henüz görev başlamadı)
+        HAREKET_HALINDE,    // Hareket halinde
+        GOREV_TAMAMLANDI,   // Görevi başarıyla tamamladı
+        YAKIT_BITTI,    // Yakıtı bitti (Yolda kaldı)
+        GOREV_BASARISIZ,   // Diğer başarısızlık durumları
     }
 

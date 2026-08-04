@@ -11,3 +11,8 @@ Projenin teknik altyapısı; sürdürülebilirlik, modülerlik ve savunma sanayi
 
 ## Kullanılan Teknolojiler ve Altyapı
 * **Loglama:** Sürdürülebilirlik ve modern standartlar gereği `SLF4J` (Arayüz) ve `Logback` (Motor) kullanılacaktır.
+
+### 4. Hafta - Görev Başlatma ve Algoritma Akışı (Sequence Diagram)
+Kullanıcının simülasyonu başlatmasıyla birlikte; UI katmanından Business Logic katmanına giden veri akışı, hibrit TSP algoritmasının tetiklenmesi ve testlerin çalışma sırası aşağıdaki UML Ardışık Düzen (Sequence) diyagramında modellenmiştir:
+
+![Sequence Diagram](images/sequence-diagram-start-mission.drawio.png)

@@ -3,6 +3,7 @@ package org.example.service;
 import org.example.model.Coordinate;
 import org.example.model.Objective;
 import org.example.model.Tank;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -12,30 +13,49 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class MissionManagerTest {
 
+    private Tank tank;
+    private MissionManager manager;
+
+    @BeforeEach
+    void setUp() {
+        // Her testten önce temiz bir başlangıç
+        tank = new Tank(new Coordinate(0, 0), 1000.0, 1.0, 0.0);
+        manager = new MissionManager(tank);
+    }
+
     @Test
-    void testRotaOptimizasyonu_KusursuzAlgoritma() {
-        // Hazırlık (Arrange)
-        Tank tank = new Tank(new Coordinate(0, 0), 100.0, 1.0, 100.0);
-        MissionManager manager = new MissionManager(tank);
-
+    void testBruteForceAlgoritmasi_KucukVeriSeti() {
+        // N <= 10 (Örn: 5 hedef - Brute Force çalışmalı)
         List<Objective> hedefler = new ArrayList<>();
-        hedefler.add(new Objective(new Coordinate(10, 0), "Hedef A (Uzak)"));
-        hedefler.add(new Objective(new Coordinate(2, 0), "Hedef B (Yakın)"));
-        hedefler.add(new Objective(new Coordinate(5, 0), "Hedef C (Orta)"));
-
+        for (int i = 1; i <= 5; i++) {
+            hedefler.add(new Objective(new Coordinate(i * 10, 0), "Hedef " + i));
+        }
         manager.setHedefler(hedefler);
 
-        // Eylem (Act) -> Algoritmayı çalıştır
-        manager.rotaHesapla();
+        // Act
+        manager.rotaHesapla(new Coordinate(0, 0));
 
-        // Doğrulama (Assert)
-        // Düz bir çizgide (0 -> 10) gidip dönmek ile (10 -> 0) dönmek aynı mesafedir (Maliyet: 20).
-        // Algoritma permütasyon ağacında "A -> C -> B" kombinasyonunu önce bulduğu için bu sırayı seçer ve bu %100 doğrudur.
-        assertEquals("Hedef A (Uzak)", hedefler.get(0).getEtiket(), "İlk hedef uzak nokta olmalıydı!");
-        assertEquals("Hedef C (Orta)", hedefler.get(1).getEtiket(), "İkinci hedef orta nokta olmalıydı!");
-        assertEquals("Hedef B (Yakın)", hedefler.get(2).getEtiket(), "Üçüncü hedef yakın nokta olmalıydı!");
+        // Assert: 5 hedef için 0->10->20->30->40->50 ve geri dönüş (50) = 100 mesafe
+        assertEquals(100.0, tank.getKatEdilenMesafe(), 0.01, "Brute Force optimum rotayı hesaplayamadı!");
+    }
 
-        // TSP Algoritmasının nihai kanıtı: Hangi sırayla giderse gitsin toplam mesafe mükemmel şekilde 20 olmalıdır!
-        assertEquals(20.0, tank.getKatEdilenMesafe(), 0.001, "Toplam mesafe yanlış hesaplandı (Üsse dönüş dahil edilmemiş olabilir)!");
+    @Test
+    void testNearestNeighborAlgoritmasi_BuyukVeriSeti() {
+        // N > 10 (Örn: 12 hedef - Nearest Neighbor çalışmalı)
+        List<Objective> hedefler = new ArrayList<>();
+        for (int i = 1; i <= 12; i++) {
+            // Basit bir hat üzerinde 12 hedef
+            hedefler.add(new Objective(new Coordinate(i * 10, 0), "Hedef " + i));
+        }
+        manager.setHedefler(hedefler);
+
+        // Act
+        manager.rotaHesapla(new Coordinate(0, 0));
+
+        // Assert:
+        // Nearest Neighbor da bu basit senaryoda optimum sonucu (0->120->0 = 240) bulacaktır.
+        // Önemli olan sistemin 12 hedefi kabul etmesi ve hata vermemesidir.
+        assertEquals(240.0, tank.getKatEdilenMesafe(), 0.01, "Nearest Neighbor büyük veri setinde hatalı hesaplama yaptı!");
+        assertEquals("GÖREV TAMAMLANDI", tank.getDurum(), "Görev durumu güncellenmedi!");
     }
 }

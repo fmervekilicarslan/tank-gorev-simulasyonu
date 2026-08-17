@@ -10,20 +10,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
-    public static void main(String[] args){
+    public static void main(String[] args) {
 
         //1.ÜSSÜ OLUŞTUR
         //Üssümüz haritanın tam merkezinde(0,0) olsun
-        Coordinate usKonumu =new Coordinate(0,0);
-        Base askeriUs =new Base(usKonumu);
+        Coordinate usKonumu = new Coordinate(0, 0);
+        Base askeriUs = new Base(usKonumu);
 
         //2.TANKI OLUŞTUR
         //Tank üste(0,0) başlasın.
         //50 litre yakıtı olsun,birimde 2 litre yaksın,kapasitesi 100 olsun.
-        Tank paletliTank= new Tank(new Coordinate(0,0),50.0,2.0,100.0);
+        Tank paletliTank = new Tank(new Coordinate(0, 0), 50.0, 2.0, 100.0);
 
         //3. HEDEFLERİ OLUŞTUR
-        List<Objective> hedefler=new ArrayList<>();
+        List<Objective> hedefler = new ArrayList<>();
         //0,0'dan 3,4'e mesafe=5 birimdir.
         // 0,0'dan 3,4'e mesafe = 5 birimdir.
         hedefler.add(new Objective(new Coordinate(3, 4), "Düşman Cephaneliği"));
@@ -36,12 +36,14 @@ public class Main {
 
         // 5. MOTORLARI ÇALIŞTIR!
         System.out.println("--- SİMÜLASYON BAŞLIYOR ---");
-        yonetici.rotaHesapla();
+        yonetici.rotaHesapla(new Coordinate(0, 0));
 
         // 6. SON DURUM RAPORU
         System.out.println("\n--- GÖREV SONU RAPORU ---");
         System.out.println("Tankın Kalan Yakıtı: " + paletliTank.getYakitSeviyesi() + " Litre");
         System.out.println("Tankın Kat Ettiği Toplam Mesafe: " + paletliTank.getKatEdilenMesafe() + " Birim");
         System.out.println("Tankın Son Durumu: " + paletliTank.getDurum());
+
+
     }
 }

@@ -44,6 +44,13 @@ public class SimulationController {
     @FXML private Label lblCoordinates;
     @FXML private Label lblMenzil;
 
+    // Tankın son geçerli parametrelerini hafızada tutan değişkenler
+    private double sonGecerliKapasite = 100.0;
+    private double sonGecerliTuketim = 5.0;
+
+    // Objective nesnelerini görsel VBox'ları ile eşleştiren harita
+    private java.util.Map<Objective, javafx.scene.layout.VBox> objectiveVisuals = new java.util.HashMap<>();
+
     private enum Mode { NONE, BASE, OBJECTIVE }
     private Mode currentMode = Mode.NONE;
 
@@ -67,7 +74,13 @@ public class SimulationController {
         mapPane.heightProperty().addListener((obs, oldVal, newVal) -> drawGrid());
         javafx.application.Platform.runLater(this::drawGrid);
 
-        mapPane.setOnMouseClicked(event -> handleMapClick(event.getX(), event.getY()));
+        mapPane.setOnMouseClicked(event -> {
+            // Sadece Sol Tık yapıldıysa haritaya işlem yap
+            if (event.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
+                handleMapClick(event.getX(), event.getY());
+            }
+        });
+
         // HARİTA ÜZERİNDE FARE HAREKETİNİ DİNLEYEN RADAR SİSTEMİ
         mapPane.setOnMouseMoved(event -> {
             if (activeTransition == null || activeTransition.getStatus() != javafx.animation.Animation.Status.RUNNING) {
@@ -82,21 +95,56 @@ public class SimulationController {
             }
         });
 
-        btnClear.setOnAction(e -> clearMap());
-        btnStart.setOnAction(e -> validateAndStart());
+        btnClear.setOnAction(e -> {
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Haritayı Temizleme Onayı");
+            alert.setHeaderText(null);
+            alert.setContentText("Haritadaki tüm hedefleri, üssü ve rotayı silmek istediğinize emin misiniz?");
 
-        btnPause.setOnAction(e -> {
-            lblStatus.setText("Operasyon Durumu: [ DURAKLATILDI ]");
-            if(activeTransition != null) activeTransition.pause();
+            javafx.scene.control.ButtonType btnEvet = new javafx.scene.control.ButtonType("Evet");
+            javafx.scene.control.ButtonType btnHayir = new javafx.scene.control.ButtonType("Hayır", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+            alert.getButtonTypes().setAll(btnEvet, btnHayir);
+
+            alert.showAndWait().ifPresent(type -> {
+                if (type == btnEvet) {
+                    clearMap(); // Sadece Evet'e basılırsa temizle
+                }
+            });
         });
 
+        btnStart.setOnAction(e -> validateAndStart());
+
+        // --- DURDUR (PAUSE) BUTONU BAĞLANTISI ---
+        btnPause.setOnAction(e -> {
+            if (activeTransition != null) {
+                activeTransition.pause(); // Tank hareketini anlık olarak dondurur
+                lblStatus.setText("Operasyon Durumu: [ DURAKLATILDI ]");
+                lblStatus.setTextFill(Color.YELLOW);
+            }
+        });
+
+        // --- DEVAM ET (RESUME) BUTONU BAĞLANTISI ---
         btnResume.setOnAction(e -> {
-            lblStatus.setText("Operasyon Durumu: [ ÇALIŞIYOR ]");
-            validateAndStart();
+            if (activeTransition != null) {
+                activeTransition.play(); // Kaldığı yerden devam ettirir
+                lblStatus.setText("Operasyon Durumu: [ SEYİR HALİNDE ]");
+                lblStatus.setTextFill(Color.web("#7cb342"));
+            }
+        });
+
+        btnBaseMode.setOnAction(e -> {
+            if (currentMode == Mode.BASE) setMode(Mode.NONE);
+            else setMode(Mode.BASE);
+        });
+
+        btnObjMode.setOnAction(e -> {
+            if (currentMode == Mode.OBJECTIVE) setMode(Mode.NONE);
+            else setMode(Mode.OBJECTIVE);
         });
 
         txtFuelCapacity.setTooltip(new Tooltip("Tankın kapasitesi."));
         txtFuelRate.setTooltip(new Tooltip("100 px başına harcanan yakıt."));
+
         // Kullanıcı Yakıt Kapasitesi kutusuna veri girip, başka bir yere tıkladığı (Focus kaybettiği) an kontrol et:
         txtFuelCapacity.focusedProperty().addListener((obs, oldVal, newVal) -> {
             if (!newVal) {
@@ -110,8 +158,10 @@ public class SimulationController {
                 anlikYakitKontrolu();
             }
         });
+
         txtFuelCapacity.textProperty().addListener((obs, oldVal, newVal) -> updateTelemetryAndRange());
         txtFuelRate.textProperty().addListener((obs, oldVal, newVal) -> updateTelemetryAndRange());
+
         updateTelemetryAndRange();
     }
 
@@ -123,6 +173,10 @@ public class SimulationController {
             // Eğer kullanıcı eksi veya sıfır girerse, anlık göstergeyi bozma ve güncelleme!
             if(capacity <= 0 || rate <= 0) return;
 
+            // Anlık yazımda değerler geçerliyse hafızayı güncelle
+            sonGecerliKapasite = capacity;
+            sonGecerliTuketim = rate;
+
             if (aktifTank == null) {
                 lblFuel.setText(String.format("Kalan Yakıt: [ %.1f / %.1f L ]", capacity, capacity));
             }
@@ -131,6 +185,7 @@ public class SimulationController {
             }
         } catch (NumberFormatException ignored) {}
     }
+
     private void anlikYakitKontrolu() {
         try {
             double capacity = Double.parseDouble(txtFuelCapacity.getText());
@@ -140,15 +195,21 @@ public class SimulationController {
             if (capacity <= 0 || rate <= 0) {
                 throw new NumberFormatException("Değerler pozitif olmalı.");
             }
+
+            // Değerler tamamen geçerliyse hafızadaki son başarılı durumu güncelle
+            sonGecerliKapasite = capacity;
+            sonGecerliTuketim = rate;
+
         } catch (NumberFormatException ex) {
             showAlert(Alert.AlertType.ERROR, "Geçersiz Parametre",
-                    "Yakıt kapasitesi ve tüketim oranı pozitif sayı olmalıdır!\n\nGüvenlik protokolü gereği varsayılan değerler otomatik olarak atanmıştır.");
+                    "Yakıt kapasitesi ve tüketim oranı pozitif sayı olmalıdır!\n\nGeçersiz giriş iptal edildi, değerler son geçerli haline döndürüldü.");
 
-            // Hata anında değerleri varsayılana sıfırla
-            txtFuelCapacity.setText("100.0");
-            txtFuelRate.setText("5.0");
+            // Hata anında değerleri DEFAULT yerine SON BAŞARILI DURUMA geri al
+            txtFuelCapacity.setText(String.valueOf(sonGecerliKapasite));
+            txtFuelRate.setText(String.valueOf(sonGecerliTuketim));
         }
     }
+
     private void setMode(Mode newMode) {
         currentMode = newMode;
         if (currentMode == Mode.BASE) {
@@ -186,21 +247,67 @@ public class SimulationController {
         String objName = "Hedef " + objectiveCounter;
         Objective obj = new Objective(new Coordinate(x, y), objName);
         objectiveNodes.add(obj);
-        javafx.scene.text.Text cross = new javafx.scene.text.Text("(X)"); cross.setFill(Color.CRIMSON); cross.setLayoutX(x - 10); cross.setLayoutY(y); cross.setId("objIcon_" + objName);
-        Label lbl = new Label(objName); lbl.setTextFill(Color.WHITE); lbl.setLayoutX(x - 20); lbl.setLayoutY(y + 5); lbl.setId("objIcon_" + objName);
-        mapPane.getChildren().addAll(cross, lbl);
+
+        // Hedef ve etiketi tek bir kapsayıcıda (VBox) birleştiriyoruz
+        javafx.scene.layout.VBox markerBox = new javafx.scene.layout.VBox(2);
+        markerBox.setLayoutX(x - 20);
+        markerBox.setLayoutY(y - 10);
+        markerBox.setPickOnBounds(true); // Kapsayıcının tüm alanını tıklanabilir yapar
+        markerBox.setStyle("-fx-background-color: transparent;");
+
+        javafx.scene.text.Text cross = new javafx.scene.text.Text("(X)");
+        cross.setFill(Color.CRIMSON);
+
+        Label lbl = new Label(objName);
+        lbl.setTextFill(Color.WHITE);
+
+        markerBox.getChildren().addAll(cross, lbl);
+
+        // --- SAĞ TIK İLE SİLME VE ONAY PENCERESİ ---
+        javafx.event.EventHandler<javafx.scene.input.MouseEvent> silmeOlayi = e -> {
+            if (e.getButton() == javafx.scene.input.MouseButton.SECONDARY) {
+                e.consume(); // Olayın haritaya (alt katmana) geçmesini kesin olarak engeller!
+
+                javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+                alert.setTitle("Hedef İptal Onayı");
+                alert.setHeaderText(null);
+                alert.setContentText(objName + " noktasını silmek istediğinize emin misiniz?");
+
+                javafx.scene.control.ButtonType btnEvet = new javafx.scene.control.ButtonType("Evet");
+                javafx.scene.control.ButtonType btnHayir = new javafx.scene.control.ButtonType("Hayır", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+                alert.getButtonTypes().setAll(btnEvet, btnHayir);
+
+                alert.showAndWait().ifPresent(type -> {
+                    if (type == btnEvet) {
+                        objectiveNodes.remove(obj);
+                        mapPane.getChildren().remove(markerBox); // Tüm kutuyu haritadan siler
+                        kesinlesmisRota.clear();
+                        mapPane.getChildren().removeIf(node -> node.getId() != null && node.getId().equals("routeObj"));
+                        lblStatus.setText("Operasyon Durumu: [ ROTA GÜNCELLENMELİ ]");
+                        lblStatus.setTextFill(Color.ORANGE);
+                    }
+                });
+            }
+        };
+        objectiveVisuals.put(obj, markerBox); // Hedefi ve görsel kutusunu eşleştiriyoruz
+        // Tıklama olayını tüm kutuya tanımlıyoruz
+        markerBox.setOnMousePressed(silmeOlayi);
+
+        mapPane.getChildren().add(markerBox);
         objectiveCounter++;
     }
 
     private void clearMap() {
         if(activeTransition != null) activeTransition.stop();
         mapPane.getChildren().removeIf(node -> node.getId() == null || (!node.getId().equals("gridLine")));
+        objectiveVisuals.clear();
         baseNode = null; objectiveNodes.clear(); kesinlesmisRota.clear();
         aktifTank = null; sonAnimasyonKonumu = null; animTankGorseli = null; objectiveCounter = 1;
         setMode(Mode.NONE); updateTelemetryAndRange();
         lblDistance.setText("Kat Edilen Yol: [ 0.0 px ]");
         lblStatus.setText("Operasyon Durumu: [ BEKLEMEDE ]");
     }
+
     private void validateAndStart() {
         // REQ-ERR-3.1 ve REQ-ERR-3.2: Base ve En Az 2 Hedef Kontrolü
         if (baseNode == null) {
@@ -223,9 +330,19 @@ public class SimulationController {
             return;
         }
 
-        // Artık try-catch yok! Çünkü 'anlikYakitKontrolu' sayesinde buraya sadece temiz verilerin geleceğinden eminiz.
-        double capacity = Double.parseDouble(txtFuelCapacity.getText());
-        double rate = Double.parseDouble(txtFuelRate.getText());
+        // Tıklanma anında değerlerin doğruluğunu son kez garanti altına almak için try-catch (Güvenlik Katmanı)
+        double capacity;
+        double rate;
+        try {
+            capacity = Double.parseDouble(txtFuelCapacity.getText());
+            rate = Double.parseDouble(txtFuelRate.getText());
+            if (capacity <= 0 || rate <= 0) throw new NumberFormatException();
+        } catch (NumberFormatException e) {
+            capacity = sonGecerliKapasite;
+            rate = sonGecerliTuketim;
+            txtFuelCapacity.setText(String.valueOf(capacity));
+            txtFuelRate.setText(String.valueOf(rate));
+        }
 
         if (aktifTank == null) {
             aktifTank = new Tank(baseNode.getLocation(), capacity, rate, capacity);
@@ -236,15 +353,19 @@ public class SimulationController {
 
         MissionManager yonetici = new MissionManager(aktifTank);
         yonetici.setHedefler(yeniHedefler);
-        yonetici.rotaHesapla();
-        kesinlesmisRota.addAll(yeniHedefler);
+
+        // 1. Yeni rotayı hesapla ve sıralanmış listeyi yonetici'den geri al!
+        List<Objective> optimizeEdilmisRota = yonetici.rotaHesapla(baseNode.getLocation());
+
+        // 2. Artık karmaşık listeyi değil, bu kusursuz dizilmiş rotayı arayüze ekle
+        kesinlesmisRota.addAll(optimizeEdilmisRota);
 
         double bitisMesafe = aktifTank.getKatEdilenMesafe();
 
         lblStatus.setText("Operasyon Durumu: [ SEYİR HALİNDE ]");
         drawRouteLinesAndMarkers(kesinlesmisRota);
 
-        animateTankSegment(yeniHedefler, baslangicMesafe, bitisMesafe, rate, capacity);
+        animateTankSegment(optimizeEdilmisRota, baslangicMesafe, bitisMesafe, rate, capacity);
     }
 
     private void drawRouteLinesAndMarkers(List<Objective> rota) {
@@ -349,9 +470,10 @@ public class SimulationController {
                 activeTransition.pause();
                 animTankGorseli.setFill(Color.DARKRED);
                 animTankGorseli.setStroke(Color.RED);
-                lblStatus.setText("Operasyon Durumu: [ BAŞARISIZ - YAKIT TÜKENDİ! ]");
+                lblStatus.setText("Operasyon Durumu: [ GÖREV BAŞARISIZ ]");
                 lblStatus.setTextFill(Color.RED);
-                lblStatusBar.setText("Kritik Hata: Tank yolda kaldı, Askeri Üsse dönemedi!");
+                lblStatusBar.setText("YETERSİZ YAKIT! Tank Yolda Kaldı, Görev Başarısız!");
+
             }
 
             double currentX = animTankGorseli.getTranslateX();
@@ -364,10 +486,19 @@ public class SimulationController {
                 double hX = hedef.getLocation().getX();
                 double hY = hedef.getLocation().getY();
 
-                // Tank hedefin 5 piksel yakınına girdiyse imha edildi say!
                 if (Math.abs(currentX - hX) < 5.0 && Math.abs(currentY - hY) < 5.0) {
-                    iterator.remove(); // Listeden çıkar (iki kez patlamasın diye)
+                    iterator.remove();
                     patlamaEfektiOlustur(hX, hY);
+
+                    // --- GÖRSEL GERİ BİLDİRİM: İMHA EDİLDİ ---
+                    javafx.scene.layout.VBox visual = objectiveVisuals.get(hedef);
+                    if (visual != null) {
+                        visual.setOpacity(0.4); // Saydamlığı azalt (sönükleştir)
+                        // Çarpı işaretini (Text nesnesini) koyu gri yap
+                        javafx.scene.text.Text cross = (javafx.scene.text.Text) visual.getChildren().get(0);
+                        cross.setFill(Color.DARKGRAY);
+                    }
+                    // ----------------------------------------
                 }
             }
 
@@ -382,7 +513,19 @@ public class SimulationController {
             lblStatus.setTextFill(Color.web("#7cb342"));
 
             lblDistance.setText(String.format("Kat Edilen Yol: [ %.1f px ]", bitisMesafe));
-            lblFuel.setText(String.format("Kalan Yakıt: [ %.1f L ]", aktifTank.getYakitSeviyesi()));
+
+            // Animasyon bittiğinde toplam harcanan yakıtı kesin olarak hesapla
+            double toplamHarcananYakit = (bitisMesafe / 100.0) * rate;
+            double gercekKalanYakit = capacity - toplamHarcananYakit;
+
+            // Güvenlik: Yakıt eksiye düşerse 0'da tut
+            if (gercekKalanYakit < 0) gercekKalanYakit = 0;
+
+            // 1. Arka plandaki tankın verisini GÜNCELLE
+            aktifTank.setYakitSeviyesi(gercekKalanYakit);
+
+            // 2. Ekrana gerçek kalan yakıtı yazdır
+            lblFuel.setText(String.format("Kalan Yakıt: [ %.1f L ]", gercekKalanYakit));
 
             if (usseDonusVarMi) {
                 sonAnimasyonKonumu = baseNode.getLocation();
@@ -394,6 +537,7 @@ public class SimulationController {
         lblStatus.setTextFill(Color.WHITE);
         activeTransition.play();
     }
+
     private void showAlert(Alert.AlertType type, String title, String msg) {
         Alert alert = new Alert(type); alert.setTitle(title); alert.setHeaderText(null); alert.setContentText(msg); alert.showAndWait();
     }
@@ -404,6 +548,7 @@ public class SimulationController {
         for (double i = 0; i <= width; i += 25) { Line line = new Line(i, 0, i, height); line.setStroke(Color.web("#223322")); line.setId("gridLine"); mapPane.getChildren().add(0, line); }
         for (double i = 0; i <= height; i += 25) { Line line = new Line(0, i, width, i); line.setStroke(Color.web("#223322")); line.setId("gridLine"); mapPane.getChildren().add(0, line); }
     }
+
     // REQ-SIM-2.3: Hedef İmha Efekti (Patlama ve Yanık İzi)
     private void patlamaEfektiOlustur(double x, double y) {
         javafx.scene.shape.Circle patlama = new javafx.scene.shape.Circle(x, y, 2);
